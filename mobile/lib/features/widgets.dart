@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
+import '../core/errors.dart';
 import '../core/pdf_tools.dart';
 import '../core/print_service.dart';
 
@@ -43,7 +44,7 @@ class _PrintPreviewScreenState extends ConsumerState<PrintPreviewScreen> {
         pageFormats: paperFormats,
         pdfFileName: _file,
         loadingWidget: const CircularProgressIndicator(),
-        onError: (_, e) => Padding(padding: const EdgeInsets.all(24), child: Text('Could not render this file:\n$e', textAlign: TextAlign.center)),
+        onError: (_, e) => Padding(padding: const EdgeInsets.all(24), child: Text('Không hiển thị được tệp · Could not render this file\n${friendlyError(e)}', textAlign: TextAlign.center)),
         actions: [
           PdfPreviewAction(icon: const Icon(Icons.share), onPressed: (_, build, fmt) async => Printing.sharePdf(bytes: await build(fmt), filename: _file)),
           if (ipp != null)
@@ -78,7 +79,7 @@ Future<T?> withProgress<T>(BuildContext context, Future<T> Function() task, {Str
   try {
     return await task();
   } catch (e) {
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendlyError(e))));
     return null;
   } finally {
     if (context.mounted) Navigator.of(context, rootNavigator: true).pop();

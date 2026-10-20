@@ -50,6 +50,12 @@ class ImageOps {
   }
 }
 
+// Top-level isolate entry points: take only plain sendable data (bytes, ints).
+Uint8List prepareJob(Uint8List b) => ImageOps.prepare(b);
+Uint8List rotateRightJob(Uint8List b) => ImageOps.rotate(b, 90);
+Uint8List autoEnhanceJob(Uint8List b) => ImageOps.autoEnhance(b);
+Uint8List filterJob((Uint8List, int) a) => ImageOps.applyFilter(a.$1, PhotoFilter.values[a.$2]);
+
 /// Photos-per-sheet layouts: (columns, rows) on a portrait page.
 const photoLayouts = {1: (1, 1), 2: (1, 2), 4: (2, 2), 6: (2, 3), 9: (3, 3)};
 

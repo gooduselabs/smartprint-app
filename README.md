@@ -1,4 +1,8 @@
+<img src="docs/screenshots/icon.png" width="96" align="right"/>
+
 # SmartPrint
+
+[**Download APK**](https://github.com/gooduselabs/smartprint-app/releases/latest)
 
 Free, fully offline Android app to print documents, photos, web pages and scans to almost any WiFi printer, with **on-device AI** (OCR, summarize, translate). No account, no ads, no paywall, nothing uploaded.
 
@@ -9,11 +13,11 @@ Free, fully offline Android app to print documents, photos, web pages and scans 
 ## Features
 - **Documents**: PDF, images, and on-device conversion of DOCX, XLSX, PPTX, CSV, TXT (see limits below).
 - **Photos & scans**: multi-select, reorder (drag), crop, rotate, filters, auto-enhance, undo; 1/2/4/6/9 per sheet, fit or fill, borderless.
-- **Scanner**: ML Kit Document Scanner (edge detection, perspective crop, multi-page) to PDF.
+- **Scanner**: Google ML Kit Document Scanner (no camera permission needed), with camera-permission fallback scanner on devices without Play services.
 - **Web pages**: URL to PDF via Android WebView print engine.
 - **Preview**: paper size (A4, Letter, A5, Legal, 4x6"), orientation, share PDF.
 - **Printing**: Android print framework (Mopria / IPP / vendor plugins: copies, page range, colour in the system dialog), or direct IPP to printers discovered by mDNS (`_ipp._tcp`) with copies.
-- **On-device AI**: ML Kit OCR; Gemma 3 1B / Gemma 3n `.task` via MediaPipe LLM Inference (`flutter_gemma`) for summarize & translate. Model downloads once on first use (Gemma is gated: accept its license on Hugging Face and paste a token in the AI screen); then works offline.
+- **On-device AI**: ML Kit OCR; summarize & translate with MediaPipe LLM Inference (`flutter_gemma`). Default model **Qwen2.5 1.5B Instruct q8** (1.5 GB, Apache-2.0, no account/token); light option Qwen2.5 0.5B (521 MB); Gemma 3 1B optional with a Hugging Face token. Download once (pause/resume), then fully offline.
 - **History**: stored locally only.
 
 ## Office conversion limits (offline, best-effort)

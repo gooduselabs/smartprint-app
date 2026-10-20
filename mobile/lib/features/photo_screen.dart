@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../core/permissions.dart';
 import 'image_set_screen.dart';
 
 class PhotoScreen extends StatelessWidget {
@@ -20,7 +21,8 @@ class PhotoScreen extends StatelessWidget {
               ListTile(leading: const Icon(Icons.photo_camera), title: const Text('Camera'), onTap: () => Navigator.pop(c, ImageSource.camera)),
             ])),
           );
-          if (src == null) return [];
+          if (src == null || !ctx.mounted) return [];
+          if (src == ImageSource.camera && !await ensureCamera(ctx)) return [];
           final picker = ImagePicker();
           final files = src == ImageSource.gallery ? await picker.pickMultiImage() : [?await picker.pickImage(source: ImageSource.camera)];
           return [for (final f in files) await f.readAsBytes()];

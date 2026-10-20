@@ -27,7 +27,7 @@ class DocumentScreen extends StatelessWidget {
       }
       openFixedPdf(context, bytes, title: name, kind: 'document');
     } else if (imageExt.contains(ext)) {
-      final img = await withProgress(context, () => compute(ImageOps.prepare, bytes), label: 'Preparing image…');
+      final img = await withProgress(context, () => compute(prepareJob, bytes), label: 'Preparing image…');
       if (img != null && context.mounted) openPreview(context, build: (fmt) => PdfTools.imagesToPdf([img], format: fmt), title: name, kind: 'photo');
     } else {
       // On-device Office/CSV/TXT conversion (A4 pages, or the slide size for PPTX).

@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -16,10 +19,15 @@ class IppPrinter {
 /// Minimal IPP/1.1 client: Bonjour (_ipp._tcp) discovery + Print-Job with a PDF.
 class Ipp {
   static Future<List<IppPrinter>> discover({Duration timeout = const Duration(seconds: 4)}) async {
-    final client = MDnsClient();
+    // Android drops multicast packets unless a WifiManager.MulticastLock is held.
+    const net = MethodChannel('smartprint/net');
+    await net.invokeMethod('multicastLock', true).catchError((_) => null);
+    // reusePort is unsupported on Android sockets.
+    final client = MDnsClient(rawDatagramSocketFactory: (host, int port, {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) =>
+        RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: false, ttl: ttl));
     final found = <String, IppPrinter>{};
-    await client.start();
     try {
+      await client.start();
       for (final svc in ['_ipp._tcp.local', '_ipps._tcp.local']) {
         await for (final ptr in client.lookup<PtrResourceRecord>(ResourceRecordQuery.serverPointer(svc), timeout: timeout)) {
           await for (final srv in client.lookup<SrvResourceRecord>(ResourceRecordQuery.service(ptr.domainName), timeout: timeout)) {
@@ -40,6 +48,7 @@ class Ipp {
       }
     } finally {
       client.stop();
+      await net.invokeMethod('multicastLock', false).catchError((_) => null);
     }
     return found.values.toList();
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/errors.dart';
 import '../core/ipp.dart';
 import '../core/print_service.dart';
 
@@ -19,7 +20,7 @@ class _PrintersScreenState extends ConsumerState<PrintersScreen> {
     try {
       _found = await Ipp.discover();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Discovery failed: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Không tìm được máy in · Discovery failed: ${friendlyError(e)}')));
     }
     if (mounted) setState(() => _scanning = false);
   }

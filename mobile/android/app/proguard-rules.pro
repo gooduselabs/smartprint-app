@@ -25,3 +25,10 @@
 -dontwarn com.google.mlkit.vision.text.**
 -dontwarn javax.lang.model.**
 -dontwarn com.google.auto.value.**
+# flutter_gemma plugin + MediaPipe GenAI, ML Kit document scanner/OCR, permission_handler
+-keep class dev.flutterberlin.** { *; }
+-keep class com.google.mlkit.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_** { *; }
+-keep class com.baseflow.permissionhandler.** { *; }
+-keep class com.google_mlkit_** { *; }
+-dontwarn com.google.android.gms.**

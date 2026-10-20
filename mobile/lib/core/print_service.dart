@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
+import 'errors.dart';
 import 'ipp.dart';
 import 'providers.dart';
 
@@ -36,7 +37,7 @@ Future<bool> printDocument(BuildContext context, WidgetRef ref, PdfBuilder build
     }
     return ok;
   } catch (e) {
-    messenger.showSnackBar(SnackBar(content: Text(ipp != null ? 'Could not reach ${ipp.name}: $e' : 'Print failed: $e')));
+    messenger.showSnackBar(SnackBar(content: Text(ipp != null ? 'Không kết nối được ${ipp.name} · ${friendlyError(e)}' : 'In thất bại · Print failed: ${friendlyError(e)}')));
     return false;
   }
 }

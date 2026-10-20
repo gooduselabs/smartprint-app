@@ -7,6 +7,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../core/ai.dart';
+import '../core/errors.dart';
 import '../core/pdf_tools.dart';
 import 'widgets.dart';
 
@@ -41,14 +42,14 @@ class _ImageSetScreenState extends State<ImageSetScreen> {
       setState(() => _busy = true);
       for (final b in raw) {
         try {
-          _items.add(await compute(ImageOps.prepare, b));
+          _items.add(await compute(prepareJob, b));
         } catch (_) {
           _snack('Skipped an unsupported image');
         }
       }
       _current = _items.isEmpty ? 0 : _items.length - 1;
     } catch (e) {
-      _snack('$e');
+      _snack(friendlyError(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -69,7 +70,7 @@ class _ImageSetScreenState extends State<ImageSetScreen> {
         if (out != null) _items[i] = out;
       }
     } catch (e) {
-      _snack('Edit failed: $e');
+      _snack('Sửa ảnh lỗi · Edit failed: ${friendlyError(e)}');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -153,13 +154,13 @@ class _ImageSetScreenState extends State<ImageSetScreen> {
               ),
               Wrap(alignment: WrapAlignment.center, children: [
                 IconButton(tooltip: 'Crop', onPressed: _busy ? null : () => _edit(_crop), icon: const Icon(Icons.crop)),
-                IconButton(tooltip: 'Rotate', onPressed: _busy ? null : () => _edit((b) => compute((x) => ImageOps.rotate(x, 90), b)), icon: const Icon(Icons.rotate_right)),
-                IconButton(tooltip: 'Auto-enhance', onPressed: _busy ? null : () => _edit((b) => compute(ImageOps.autoEnhance, b)), icon: const Icon(Icons.auto_fix_high)),
+                IconButton(tooltip: 'Rotate', onPressed: _busy ? null : () => _edit((b) => compute(rotateRightJob, b)), icon: const Icon(Icons.rotate_right)),
+                IconButton(tooltip: 'Auto-enhance', onPressed: _busy ? null : () => _edit((b) => compute(autoEnhanceJob, b)), icon: const Icon(Icons.auto_fix_high)),
                 PopupMenuButton<(PhotoFilter, bool)>(
                   icon: const Icon(Icons.filter),
                   tooltip: 'Filters',
                   enabled: !_busy,
-                  onSelected: (v) => _edit((b) => compute((x) => ImageOps.applyFilter(x, v.$1), b), all: v.$2),
+                  onSelected: (v) => _edit((b) => compute(filterJob, (b, v.$1.index)), all: v.$2),
                   itemBuilder: (_) => [
                     for (final f in PhotoFilter.values.skip(1)) PopupMenuItem(value: (f, false), child: Text(f.name)),
                     const PopupMenuDivider(),
