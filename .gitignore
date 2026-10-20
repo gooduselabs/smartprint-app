@@ -1,0 +1,12 @@
+dist/
+*.apk
+*.aab
+*.jks
+*.keystore
+key.properties
+.env
+.DS_Store
+.idea/
+.vscode/
+*.task
+*.litertlm

@@ -1,0 +1,18 @@
+# docker compose up -d --build   -> API on http://localhost:3000 (Swagger: /docs)
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment: { POSTGRES_USER: smartprint, POSTGRES_PASSWORD: smartprint, POSTGRES_DB: smartprint }
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U smartprint"], interval: 5s, retries: 10 }
+  api:
+    build: ./backend
+    env_file: ./backend/.env.example
+    environment:
+      DATABASE_URL: postgresql://smartprint:smartprint@postgres:5432/smartprint?schema=public
+      UPLOAD_DIR: /data/uploads
+    ports: ["3000:3000"]
+    volumes: [uploads:/data/uploads]
+    depends_on: { postgres: { condition: service_healthy } }
+volumes: { pgdata: {}, uploads: {} }

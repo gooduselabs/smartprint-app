@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  displayName  String?
+  plan         String     @default("free") // free | premium
+  premiumUntil DateTime?
+  createdAt    DateTime   @default(now())
+  jobs         PrintJob[]
+  documents    Document[]
+}
+
+model PrintJob {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId   String // id generated on device, makes sync idempotent
+  title      String
+  kind       String // document | photo | web | scan
+  pages      Int      @default(1)
+  copies     Int      @default(1)
+  printer    String?
+  status     String   @default("done")
+  printedAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, clientId])
+  @@index([userId, printedAt])
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  contentType String
+  size        Int
+  storageKey  String   @unique
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
