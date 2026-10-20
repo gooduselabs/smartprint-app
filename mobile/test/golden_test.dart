@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartprint/app.dart';
 import 'package:smartprint/core/providers.dart';
-import 'package:go_router/go_router.dart';
 
 Future<void> _font(String family, String file) async {
   final root = Platform.environment['FLUTTER_ROOT'] ?? '/workspace/.tools/flutter';
@@ -23,12 +22,12 @@ void main() {
     await _font('MaterialIcons', 'MaterialIcons-Regular.otf');
   });
 
-  for (final route in ['/', '/premium', '/web', '/account', '/history']) {
+  for (final route in ['/', '/document', '/photo', '/web', '/history']) {
     testWidgets('screen $route', (tester) async {
       tester.view.physicalSize = const Size(1080, 2280);
       tester.view.devicePixelRatio = 2.625;
       SharedPreferences.setMockInitialValues({
-        'history': '[{"clientId":"1","title":"Invoice-October.pdf","kind":"document","pages":3,"printer":"HP LaserJet","printedAt":"2026-10-20T08:00:00Z","synced":true},'
+        'history': '[{"clientId":"1","title":"Invoice-October.pdf","kind":"document","pages":3,"printer":"HP LaserJet","copies":2,"printedAt":"2026-10-20T08:00:00Z"},'
             '{"clientId":"2","title":"Scan 2026-10-20","kind":"scan","pages":2,"printer":"System printer","printedAt":"2026-10-20T07:00:00Z"}]'
       });
       final prefs = await SharedPreferences.getInstance();
@@ -40,7 +39,3 @@ void main() {
     });
   }
 }
-
-// keep import used
-// ignore: unused_element
-GoRouter? _r;

@@ -8,6 +8,7 @@ import 'package:smartprint/core/ipp.dart';
 import 'package:smartprint/core/pdf_tools.dart';
 import 'package:smartprint/core/providers.dart';
 import 'package:smartprint/core/ai.dart';
+import 'package:pdf/pdf.dart';
 
 Uint8List _jpg(int w, int h) => img.encodeJpg(img.Image(width: w, height: h)..clear(img.ColorRgb8(200, 100, 50)));
 
@@ -46,12 +47,36 @@ void main() {
     expect(Prompts.translate('hi', 'Vietnamese'), contains('Vietnamese'));
   });
 
+  test('history survives corrupted storage and clears', () async {
+    SharedPreferences.setMockInitialValues({'history': '{not json'});
+    final prefs = await SharedPreferences.getInstance();
+    final c = ProviderContainer(overrides: [prefsProvider.overrideWithValue(prefs)]);
+    expect(c.read(historyProvider), isEmpty);
+    await c.read(historyProvider.notifier).add(title: 'x', kind: 'scan', pages: 1, printer: 'P', copies: 3);
+    expect(c.read(historyProvider).single.copies, 3);
+    await c.read(historyProvider.notifier).clear();
+    expect(c.read(historyProvider), isEmpty);
+  });
+
+  test('photo layouts: 9 per sheet, landscape, fill', () async {
+    final pdf = await PdfTools.imagesToPdf(List.generate(10, (_) => _jpg(30, 40)), perSheet: 9, fill: true, format: PdfPageFormat.a4.landscape);
+    expect(PdfTools.pageCount(pdf), 2);
+    expect(PdfTools.pageCount(await PdfTools.imagesToPdf([], perSheet: 6)), 1);
+  });
+
+  test('prepare downsizes huge images', () {
+    final big = img.encodeJpg(img.Image(width: 5000, height: 1000));
+    final out = img.decodeImage(ImageOps.prepare(big))!;
+    expect(out.width, ImageOps.maxSide);
+    expect(() => ImageOps.prepare(Uint8List.fromList([1, 2, 3])), throwsA(anything));
+  });
+
   test('history persists and counts today', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final c = ProviderContainer(overrides: [prefsProvider.overrideWithValue(prefs)]);
     await c.read(historyProvider.notifier).add(title: 'a.pdf', kind: 'document', pages: 2, printer: 'X');
-    expect(c.read(historyProvider.notifier).todayCount, 1);
+    expect(c.read(historyProvider).length, 1);
     final c2 = ProviderContainer(overrides: [prefsProvider.overrideWithValue(prefs)]);
     expect(c2.read(historyProvider).single.title, 'a.pdf');
   });

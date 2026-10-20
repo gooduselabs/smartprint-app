@@ -1,42 +1,37 @@
 # SmartPrint
 
-Print documents, photos, web pages and scans from Android to almost any WiFi printer, with **on-device AI** (OCR, summarize, translate) powered by Google AI Edge.
+Free, fully offline Android app to print documents, photos, web pages and scans to almost any WiFi printer, with **on-device AI** (OCR, summarize, translate). No account, no ads, no paywall, nothing uploaded.
 
-| Home | Paywall | Web to PDF | History |
-|:-:|:-:|:-:|:-:|
-| ![](docs/screenshots/home.png) | ![](docs/screenshots/premium.png) | ![](docs/screenshots/web.png) | ![](docs/screenshots/history.png) |
+| Home | Documents | Photos | Web to PDF | History |
+|:-:|:-:|:-:|:-:|:-:|
+| ![](docs/screenshots/home.png) | ![](docs/screenshots/document.png) | ![](docs/screenshots/photo.png) | ![](docs/screenshots/web.png) | ![](docs/screenshots/history.png) |
 
 ## Features
-- **Documents**: PDF, images, TXT on-device; Word/Excel/PowerPoint converted server-side (LibreOffice headless).
-- **Photos**: multi-select, crop, rotate, filters, auto-enhance, 1/2/4 per sheet.
-- **Web pages**: URL to PDF on-device (WebView) or on the server (headless Chrome).
+- **Documents**: PDF, images, and on-device conversion of DOCX, XLSX, PPTX, CSV, TXT (see limits below).
+- **Photos & scans**: multi-select, reorder (drag), crop, rotate, filters, auto-enhance, undo; 1/2/4/6/9 per sheet, fit or fill, borderless.
 - **Scanner**: ML Kit Document Scanner (edge detection, perspective crop, multi-page) to PDF.
-- **Printing**: Android print framework (Mopria / IPP / vendor plugins), or direct IPP to printers discovered by mDNS (`_ipp._tcp`).
-- **On-device AI**: ML Kit OCR; Gemma 3 1B / Gemma 3n `.task` via MediaPipe LLM Inference (`flutter_gemma`) for summarize & translate. Models download on first use (Gemma is gated: accept the license on Hugging Face and paste a token in the AI screen).
-- **History** (local, synced when signed in), **PRO paywall placeholder** (no real billing; 5 free prints/day).
+- **Web pages**: URL to PDF via Android WebView print engine.
+- **Preview**: paper size (A4, Letter, A5, Legal, 4x6"), orientation, share PDF.
+- **Printing**: Android print framework (Mopria / IPP / vendor plugins: copies, page range, colour in the system dialog), or direct IPP to printers discovered by mDNS (`_ipp._tcp`) with copies.
+- **On-device AI**: ML Kit OCR; Gemma 3 1B / Gemma 3n `.task` via MediaPipe LLM Inference (`flutter_gemma`) for summarize & translate. Model downloads once on first use (Gemma is gated: accept its license on Hugging Face and paste a token in the AI screen); then works offline.
+- **History**: stored locally only.
 
-## Stack
-| Layer | Tech |
-|---|---|
-| Mobile | Flutter · Riverpod · go_router |
-| Backend | NestJS · Prisma · PostgreSQL · LibreOffice · Chromium |
-| Storage | Local disk or any S3-compatible bucket |
+## Office conversion limits (offline, best-effort)
+| Format | Supported | Not supported |
+|---|---|---|
+| DOCX | paragraphs, headings/title, bold/italic/underline/size/colour, alignment, bullet/numbered lists (as bullets), tables, inline PNG/JPEG images, page breaks | exact fonts & spacing, headers/footers, footnotes, text boxes, floating images, charts, SmartArt, EMF/WMF, columns, merged-cell spans |
+| XLSX | all sheets as tables (strings, numbers, booleans, cached formula results), up to 3000 rows × 40 columns, auto landscape | cell formatting/colours, number formats/dates (raw values), merged cells, charts, images |
+| PPTX | one page per slide at slide size, text boxes & placeholders positioned by frame, font size/bold/italic/colour, pictures | themes/backgrounds, layout-inherited positions (approximated), shapes/fills, group offsets, charts, animations |
+| CSV / TXT | full | — |
+| DOC / XLS / PPT / ODT / RTF | — | legacy/binary formats: export to DOCX/PDF first |
 
-## Quick start
+Fonts: bundled Roboto (Latin incl. Vietnamese). CJK text in Office files will not render.
+
+## Build
 ```bash
-# Backend
-docker compose up -d --build            # API http://localhost:3000, Swagger /docs
-# or locally
-cd backend && cp .env.example .env && npm ci && npx prisma migrate deploy && npm run start:dev
-npm test                                # e2e tests (needs Postgres; DATABASE_URL to a test DB)
-
-# Mobile
-cd mobile && flutter pub get
-flutter build apk --release --target-platform android-arm64 --split-per-abi --dart-define=API_URL=http://<server>:3000
+cd mobile && flutter pub get && flutter test
+flutter build apk --release --target-platform android-arm64 --split-per-abi
 ```
+Stack: Flutter · Riverpod · go_router · `pdf`/`printing` · ML Kit · MediaPipe (Google AI Edge).
 
-## API
-`POST /auth/register|login` · `GET|PATCH /me` · `GET /jobs`, `POST /jobs/sync`, `DELETE /jobs/:id` · `GET|POST /documents`, `GET /documents/:id/content`, `DELETE /documents/:id` · `POST /convert/office` (multipart `file`) · `POST /convert/web` (`{url}`, SSRF-guarded) · `GET /subscription` (stub).
-
-## Not yet
-Real Google Play Billing, template library, iOS polish.
+`legacy-backend/` holds the earlier NestJS API (auth, sync, server-side conversion). The app no longer uses it.

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:printing/printing.dart';
 
 import '../core/ai.dart';
-import '../core/pdf_tools.dart';
-import '../core/providers.dart';
+import '../core/fonts.dart';
+import '../core/office.dart';
 import 'widgets.dart';
 
 const languages = ['Vietnamese', 'English', 'Chinese', 'Japanese', 'Korean', 'French', 'Spanish', 'German'];
@@ -25,10 +23,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   String _lang = 'Vietnamese';
 
   Future<void> _run(Future<String> Function(AiController) f) async {
-    if (!ref.read(premiumProvider)) {
-      context.push('/premium');
-      return;
-    }
     if (_input.text.trim().isEmpty) return;
     try {
       final r = await f(ref.read(aiProvider.notifier));
@@ -107,8 +101,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             TextButton.icon(onPressed: () => Clipboard.setData(ClipboardData(text: _result)), icon: const Icon(Icons.copy), label: const Text('Copy')),
             TextButton.icon(
               onPressed: () async {
-                final pdf = await PdfTools.textToPdf('AI result', _result, font: await PdfGoogleFonts.notoSansRegular());
-                if (context.mounted) openPreview(context, pdf, title: 'AI result', kind: 'document');
+                final pdf = await OfficeConverter(await PdfFonts.load()).text(_result, title: 'AI result');
+                if (context.mounted) openFixedPdf(context, pdf, title: 'AI result', kind: 'document');
               },
               icon: const Icon(Icons.print),
               label: const Text('Print'),

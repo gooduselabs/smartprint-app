@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'features/account_screen.dart';
 import 'features/ai_screen.dart';
 import 'features/document_screen.dart';
 import 'features/history_screen.dart';
 import 'features/home_screen.dart';
-import 'features/paywall_screen.dart';
 import 'features/photo_screen.dart';
 import 'features/printers_screen.dart';
 import 'features/scan_screen.dart';
@@ -22,8 +20,6 @@ final routerProvider = Provider<GoRouter>((ref) => GoRouter(routes: [
       GoRoute(path: '/ai', builder: (_, s) => AiScreen(initialText: s.extra as String?)),
       GoRoute(path: '/history', builder: (_, _) => const HistoryScreen()),
       GoRoute(path: '/printers', builder: (_, _) => const PrintersScreen()),
-      GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
-      GoRoute(path: '/premium', builder: (_, _) => const PaywallScreen()),
     ]));
 
 class SmartPrintApp extends ConsumerWidget {

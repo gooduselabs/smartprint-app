@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/print_service.dart';
-import '../core/providers.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -19,15 +18,10 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final premium = ref.watch(premiumProvider);
     final ipp = ref.watch(selectedIppPrinterProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('SmartPrint', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          if (!premium) TextButton.icon(onPressed: () => context.push('/premium'), icon: const Icon(Icons.workspace_premium, color: Colors.amber), label: const Text('PRO')),
-          IconButton(onPressed: () => context.push('/account'), icon: const Icon(Icons.account_circle_outlined)),
-        ],
       ),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         Card(

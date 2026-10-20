@@ -73,7 +73,7 @@ class Ipp {
 
   /// Returns the IPP status code (0x0000-0x00FF = success).
   static Future<int> printPdf(IppPrinter p, Uint8List pdf, {String jobName = 'SmartPrint', int copies = 1}) async {
-    final res = await Dio().post<List<int>>(p.httpUrl,
+    final res = await Dio(BaseOptions(connectTimeout: const Duration(seconds: 8), receiveTimeout: const Duration(seconds: 120))).post<List<int>>(p.httpUrl,
         data: Stream.value(buildPrintJob(p.uri, pdf, jobName: jobName, copies: copies)),
         options: Options(headers: {'Content-Type': 'application/ipp'}, responseType: ResponseType.bytes));
     final body = res.data!;

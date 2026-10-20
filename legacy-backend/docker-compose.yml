@@ -7,8 +7,8 @@ services:
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U smartprint"], interval: 5s, retries: 10 }
   api:
-    build: ./backend
-    env_file: ./backend/.env.example
+    build: .
+    env_file: ./.env.example
     environment:
       DATABASE_URL: postgresql://smartprint:smartprint@postgres:5432/smartprint?schema=public
       UPLOAD_DIR: /data/uploads

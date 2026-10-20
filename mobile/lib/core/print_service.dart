@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:go_router/go_router.dart';
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
 import 'ipp.dart';
@@ -11,33 +11,32 @@ import 'providers.dart';
 
 final selectedIppPrinterProvider = StateProvider<IppPrinter?>((_) => null);
 
-/// Prints via the Android print framework (covers Mopria/IPP/vendor plugins),
-/// or straight to a discovered IPP printer when one is selected.
-Future<void> printPdf(BuildContext context, WidgetRef ref, Uint8List pdf, {required String title, required String kind, int pages = 1}) async {
-  final history = ref.read(historyProvider.notifier);
-  if (!ref.read(premiumProvider) && history.todayCount >= freePrintsPerDay) {
-    context.push('/premium');
-    return;
-  }
+typedef PdfBuilder = Future<Uint8List> Function(PdfPageFormat format);
+
+/// Prints via the Android print framework (Mopria / IPP / vendor plugins; paper, copies,
+/// pages and colour are chosen in the system dialog) or straight to a discovered IPP printer.
+Future<bool> printDocument(BuildContext context, WidgetRef ref, PdfBuilder build, {required String title, required String kind, int pages = 1, int copies = 1, PdfPageFormat format = PdfPageFormat.a4}) async {
   final ipp = ref.read(selectedIppPrinterProvider);
   final messenger = ScaffoldMessenger.of(context);
   try {
-    bool ok;
+    var ok = false;
     String printer;
     if (ipp != null) {
-      final status = await Ipp.printPdf(ipp, pdf, jobName: title);
+      final status = await Ipp.printPdf(ipp, await build(format), jobName: title, copies: copies);
       ok = status < 0x0100;
       printer = ipp.name;
-      if (!ok) messenger.showSnackBar(SnackBar(content: Text('Printer error 0x${status.toRadixString(16)}')));
+      if (!ok) messenger.showSnackBar(SnackBar(content: Text('Printer refused the job (IPP 0x${status.toRadixString(16)})')));
     } else {
-      ok = await Printing.layoutPdf(onLayout: (_) async => pdf, name: title);
+      ok = await Printing.layoutPdf(onLayout: build, name: title, format: format);
       printer = 'System printer';
     }
     if (ok) {
-      await history.add(title: title, kind: kind, pages: pages, printer: printer);
+      await ref.read(historyProvider.notifier).add(title: title, kind: kind, pages: pages, printer: printer, copies: copies);
       messenger.showSnackBar(SnackBar(content: Text('Sent "$title" to $printer')));
     }
+    return ok;
   } catch (e) {
-    messenger.showSnackBar(SnackBar(content: Text('Print failed: $e')));
+    messenger.showSnackBar(SnackBar(content: Text(ipp != null ? 'Could not reach ${ipp.name}: $e' : 'Print failed: $e')));
+    return false;
   }
 }
